@@ -33,6 +33,34 @@ vim.opt.softtabstop = 4  -- spaces when pressing TAB
 vim.opt.expandtab = true -- convert TABs to spaces
 
 -----------------------------------------------------------
+-- Enable spell checking for specific filetypes
+-----------------------------------------------------------
+-- Spell for prose: markdown, text, git commits
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "markdown", "text", "gitcommit" },
+  callback = function()
+    vim.opt_local.spell = true
+    vim.opt_local.spelllang = { "en_us" }
+  end,
+})
+
+-- Spell for code comments/strings only (we'll wire this with Tree-sitter @spell)
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "rust", "go", "python", "lua", "javascript", "typescript", "c", "cpp", "cs" },
+  callback = function()
+    vim.opt_local.spell = true
+    vim.opt_local.spelllang = { "en_us" }
+    vim.opt_local.spelloptions = "camel"
+  end,
+})
+
+-- Handy keymaps (normal mode)
+-- Note: ]s and [s are built-in for next/prev spelling error
+vim.keymap.set("n", "z?", "z=", { desc = "Spelling suggestions" })
+vim.keymap.set("n", "zga", "zg", { desc = "Add word to dictionary" })
+vim.keymap.set("n", "zgw", "zw", { desc = "Mark word as wrong" })
+
+-----------------------------------------------------------
 -- rustaceanvim global config
 -- NOTE: this must be set before the plugin loads
 -----------------------------------------------------------
@@ -515,9 +543,6 @@ require("lazy").setup({
     ---------------------------------------------------------
     -- Debugging: nvim-dap + UI
     ---------------------------------------------------------
-    ---------------------------------------------------------
-    -- Debugging: nvim-dap + UI
-    ---------------------------------------------------------
     {
         "mfussenegger/nvim-dap",
     },
@@ -561,18 +586,17 @@ require("lazy").setup({
         end,
     },
 
-    -----------------------------------------------------------
-    -- Create :Format command (for conform.nvim)
-    -----------------------------------------------------------
-    vim.api.nvim_create_user_command("Format", function()
-        require("conform").format({
-            async = false,
-            lsp_fallback = true,
-        })
-    end, {}
-    ),
-
 })
+
+-----------------------------------------------------------
+-- Create :Format command (for conform.nvim)
+-----------------------------------------------------------
+vim.api.nvim_create_user_command("Format", function()
+    require("conform").format({
+        async = false,
+        lsp_fallback = true,
+    })
+end, {})
 
 -----------------------------------------------------------
 -- Global keymaps
